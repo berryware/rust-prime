@@ -13,15 +13,19 @@ pub fn is_prime(n: u64) -> bool {
 }
 
 pub struct Prime {
-  last: u64,
-  next: u64
+  curr: u64,
+  next: u64,
+  trial1: u64,
+  trial2: u64
 }
 
 impl Prime {
   pub fn new() -> Prime {
     Prime {
-      last: 2,
-      next: 3
+      curr: 2,
+      next: 3,
+      trial1: 5,
+      trial2: 7
     }
   }
 }
@@ -30,13 +34,12 @@ impl Iterator for Prime {
   type Item = u64;
 
   fn next(&mut self) -> Option<Self::Item> {
-    let prime = self.last;
-    self.last = self.next;
+    let prime = self.curr;
+    self.curr = self.next;
     loop {
-      self.next += match self.next%6 {
-        1 => 4,
-        _ => 2,
-      };
+      self.next = self.trial1;
+      self.trial1 = self.trial2;
+      self.trial2 = self.next+6;
       if is_prime(self.next) {
         break;
       }
