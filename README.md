@@ -60,6 +60,8 @@ impl Iterator for Prime {
   }
 }
 ```
+A new Prime starts off with curr=2 and next=3. This allowed me to ignore the special case of two primes being only one digit apart. The next function saves the prime in `curr` which it will return. It then moves `next` into `curr` and calculates a new `next`. It makes use of the fact that all primes greater than 3 are of the form 6k ± 1. So if the latest test prime is 6k-1 we add 2 to get the next possible prime. If the latest test prime is 6K+1 we add 4 to get the next possible prime. We accomplish this with p modulo 6, where p is the latest test prime. If p modulo 6 is 1 then we have a 6k+1 number and need to add 4 to get to the next test prime of 6k-1. If p modulo 6 is 5 or 3, then we add 2 to get to the next 6k+1 number. `_ => 2` is the catch all that let's us catch the initial state of n=3 and any state where n=6k-1.
+
 This iterator operates with constant memory and only generates one prime at a time, but it performs a modulo and match operation inside the loop. After some consideration, both the modulo and match can be removed from inside the loop. If we initialize the `struct Prime` with the first two primes and the first `6k ± 1` we only need to add 6 to get the next trial prime. The final Iterator is:
 
 ```rust
