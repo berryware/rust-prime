@@ -1,3 +1,5 @@
+use std::collections::LinkedList;
+
 pub fn is_prime(n: u64) -> bool {
   if n < 4 {
     n > 1
@@ -48,10 +50,64 @@ impl Iterator for Prime {
   }
 }
 
+pub struct PrimeM {
+  curr: u64,
+  next: u64,
+  trial1: u64,
+  trial2: u64,
+  primes: LinkedList<u64>
+}
+
+impl PrimeM {
+  pub fn new() -> PrimeM {
+    let mut prime_list = LinkedList::new();
+    prime_list.push_back(2);
+    prime_list.push_back(3);
+    PrimeM {
+      curr: 2,
+      next: 3,
+      trial1: 5,
+      trial2: 7,
+      primes: prime_list
+    }
+  }
+
+  fn check_prime(&self, candidate:u64 ) -> bool {
+    for p in &self.primes {
+      let prime = *p;
+      if prime*prime > candidate {
+        return true;
+      }
+      if candidate%prime == 0 {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+impl Iterator for PrimeM {
+  type Item = u64;
+
+  fn next(&mut self) -> Option<Self::Item> {
+    let prime = self.curr;
+    self.curr = self.next;
+    loop {
+      self.next = self.trial1;
+      self.trial1 = self.trial2;
+      self.trial2 = self.next+6;
+      if self.check_prime(self.next) {
+        self.primes.push_back(self.next);
+        break;
+      }
+    }
+    Some(prime)
+  }
+}
 
 #[cfg(test)]
 mod tests {
-  use crate::{is_prime, Prime};
+  use crate::{is_prime, Prime, PrimeM};
   const PRIMES: [u64; 100] = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541];
 
   #[test]
@@ -81,4 +137,32 @@ mod tests {
       assert_eq!(prime_it.next().unwrap(), PRIMES[idx]);
     }
   }
+
+  #[test]
+  fn check_primem_iterator() {
+    let mut primem_it = PrimeM::new();
+    for idx in 0..PRIMES.len() {
+      let prime = primem_it.next().unwrap();
+      assert_eq!(prime, PRIMES[idx]);
+    }
+  }
+
+  #[test]
+  fn check_100000_prime() {
+    let mut prime_it = Prime::new();
+    for _ in 0..100000 {
+      prime_it.next();
+    }
+    assert!(is_prime(prime_it.next().unwrap()));
+  }
+
+  #[test]
+  fn check_100000_primem() {
+    let mut primem_it = PrimeM::new();
+    for _ in 0..100000 {
+      primem_it.next();
+    }
+    assert!(is_prime(primem_it.next().unwrap()));
+  }
+
 }
